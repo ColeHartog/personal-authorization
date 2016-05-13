@@ -27,11 +27,11 @@ module.exports = {
                             , error: "Incorrect Password"
                         });
                     }
-                }else{
+                } else {
                     res.status(200).json({
-                            login: false
-                            , error: "User Does Not Exist"
-                        });
+                        login: false
+                        , error: "User Does Not Exist"
+                    });
                 }
             }
         })
@@ -79,18 +79,18 @@ module.exports = {
                         if (err) {
                             res.status(500).send(err)
                         } else {
-                            if (newUser.comparePassword(req.body.password)) {
+                            if (newUser) {
                                 var token = jwt.sign({
                                     _id: newUser._id
                                     , username: newUser.username
                                 }, config.key);
                                 res.status(200).json({
-                                    createdUser: true
+                                    login: true
                                     , loginToken: token
                                 });
                             } else {
-                                res.status(401).json({
-                                    createdUser: false
+                                res.status(200).json({
+                                    loggedIn: false
                                 });
                             }
                         }
