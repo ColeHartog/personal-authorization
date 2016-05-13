@@ -38,6 +38,7 @@ module.exports = {
     },
 
     LoggedIn: function (req, res, next) {
+        console.log("loggedin", req.get("loginToken"));
         if (req.get('loginToken')) {
             var token = jwt.verify(req.get('loginToken'), config.key);
             User.findById(token._id, function (err, user) {
@@ -85,12 +86,12 @@ module.exports = {
                                     , username: newUser.username
                                 }, config.key);
                                 res.status(200).json({
-                                    login: true
+                                    registered: true
                                     , loginToken: token
                                 });
                             } else {
                                 res.status(200).json({
-                                    loggedIn: false
+                                    registered: false
                                 });
                             }
                         }
