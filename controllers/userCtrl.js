@@ -38,16 +38,16 @@ module.exports = {
     },
 
     LoggedIn: function (req, res, next) {
-        console.log("loggedin", req.get("loginToken"));
         if (req.get('loginToken')) {
             var token = jwt.verify(req.get('loginToken'), config.key);
-            User.findById(token._id, function (err, user) {
+            User.findById(token._id).select("_id username profileImgUrl friends requests pending color").populate({path: "friends", select: "username profileImgUrl"}).populate({path: "requests", select: "username profileImgUrl"}).exec(function (err, user) {
                 if (err) {
                     res.status(500).send(err)
                 } else {
                     if (user) {
                         res.status(200).json({
-                            loggedIn: true
+                            loggedIn: true,
+                            user: user
                         });
                     } else {
                         res.status(200).json({
@@ -99,6 +99,88 @@ module.exports = {
                 }
             }
         })
-    }
+    },
+    
+    AddFriend: function(req, res, next){
+        var token = jwt.verify(req.get('loginToken'), config.key);
+        User.findById(req.params.id, function(err, user){
+            if(err){
+                res.send(500).send(err);
+            }else{
+                if(user.pending.indexOf(token._id) !== -1){
+                    User.findByIdAndUpdate(token._id, {$pull: {"requests": user._id}, $addToSet: {"friends": user._id}}, function(err, cuser){
+                        if(err){
+                            res.send(500).send(err);
+                        }else{
+                            User.findByIdAndUpdate(user._id, {$pull: {"pending": cuser._id}, $addToSet: {"friends": cuser._id}}, function(err, user){
+                                if(err){
+                                    res.send(500).send(err);
+                                }else{
+                                    res.status(200).json({status: "You are now friends"})
+                                }
+                            })
+                        }
+                    })
+                }else{
+                    User.findByIdAndUpdate(token._id, {$addToSet: {"pending": user._id}}, function(err, cuser){
+                        if(err){
+                            res.send(500).send(err);
+                        }else{
+                            User.findByIdAndUpdate(user._id, {$addToSet: {"requests": cuser._id}}, function(err, user){
+                                if(err){
+                                    res.send(500).send(err);
+                                }else{
+                                    res.status(200).json({status: "Friend Request Sent"})
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+        })
+    },
+    
+    GetUsers: function(req, res, next){
+        User.find().populate({path: "friends", select: "username"}).exec(function(err, users){
+            if(err){
+                res.status(500).json(err);
+            }else{
+                res.status(200).json(users);
+            }
+        })
+    },
+    
+    FindUsersByName: function(req, res, next){
+        var token = jwt.verify(req.get('loginToken'), config.key);
+        User.find({$and: [{username: {$regex: req.query.username}}, {_id: {$ne: token._id}}]}).sort({'username': 1}).limit(15).select("username profileImgUrl").exec(function(err, users){
+            if(err){
+                res.status(500).send(err);
+            }else{
+                res.status(200).json(users);
+            }
+        })
+    },
+    
+    UpdateColor: function(req, res, next){
+        var token = jwt.verify(req.get('loginToken'), config.key);
+        User.findByIdAndUpdate(token._id, {color: req.body.color}, function(err, user){
+            if(err){
+                res.status(500).send(err);
+            }else{
+                res.status(200).json({status: "Color Updated"})
+            }
+        })
+    },
+    
+    UpdateProfileImgUrl: function(req, res, next){
+        var token = jwt.verify(req.get('loginToken'), config.key);
+        User.findByIdAndUpdate(token._id, {profileImgUrl: req.body.url}, function(err, user){
+            if(err){
+                res.status(500).send(err);
+            }else{
+                res.status(200).json({status: "ProfileImg Updated"})
+            }
+        })
+    },
 
 }

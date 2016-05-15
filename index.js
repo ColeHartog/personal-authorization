@@ -14,13 +14,13 @@ app.use(express.static(__dirname + '/public'));
 
 
 app.use(function(req, res, next) {
-    console.log(req.body, "hit");
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, loginToken");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, DELETE, POST");
   next();
 });
 
-mongoose.connect('mongodb://localhost:27017/personal-auth');
+mongoose.connect('mongodb://localhost:27017/Social');
 mongoose.connection.once('open', function(){
     console.log('Connected to mongodb\n');
 });
@@ -32,7 +32,11 @@ app.get('/api/test', function(req, res, next){
 app.post('/api/login', userCtrl.Login);
 app.get('/api/loggedin', userCtrl.LoggedIn);
 app.post('/api/register', userCtrl.RegisterNewLogin);
-
+app.put('/api/addfriend/:id', userCtrl.AddFriend);
+app.get('/api/users', userCtrl.GetUsers);
+app.get('/api/users/search/', userCtrl.FindUsersByName);
+app.put('/api/user/updatecolor', userCtrl.UpdateColor);
+app.put('/api/user/updateprofileimg', userCtrl.UpdateProfileImgUrl);
 
 
 

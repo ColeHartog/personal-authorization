@@ -4,7 +4,16 @@ var mongoose = require("mongoose"),
 
 var UserSchema = new mongoose.Schema({
     username: {type: 'String', required: true, unique: true},
-    password: {type: 'String', required: true}
+    password: {type: 'String', required: true},
+    profileImgUrl: {type: 'String', default: "https://qph.is.quoracdn.net/main-qimg-3b0b70b336bbae35853994ce0aa25013?convert_to_webp=true"},
+    color: {
+        r: {type: 'Number', default: 255},
+        g: {type: 'Number', default: 255},
+        b: {type: 'Number', default: 255}
+    },
+    friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    requests: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    pending: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
 });
 
 
